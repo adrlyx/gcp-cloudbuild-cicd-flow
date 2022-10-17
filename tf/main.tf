@@ -16,11 +16,13 @@ locals {
     billing_account     = ""        # TODO: Billing account for the GCP Project
     app_name            = ""        # TODO: App name for Cloud Run services
     registry_name       = ""        # TODO: Name your artifact registry where you images will be pushed
+    folder_id           = ""        # TODO: Folder ID from GCP. Format: 'folders/<folder-id>'
 }
 
 module "project" {
   project_name          = local.project_name
   billing_account       = local.billing_account
+  folder_id             = local.folder_id
   source                = "./modules/project"
   app_name              = local.app_name
 }
