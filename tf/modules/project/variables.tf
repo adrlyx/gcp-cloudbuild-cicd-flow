@@ -9,3 +9,7 @@ variable "billing_account" {
 variable "app_name" {
   type = string
 }
+
+variable "folder_id" {
+  type = string
+}
