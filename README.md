@@ -28,7 +28,7 @@ In this example it will build a static nginx website based on the code in './app
 
 2. You need to be authenticated with your GCP account to be able to run Terraform.
 
-3. In conf/github_actions_config_latest.json and github_actions_config_prod.json set the APP_NAME same as in main.tf.
+3. In conf/github_actions_config_latest.json and github_actions_config_prod.json set the APP_NAME and REGISTRY_NAME same as in main.tf.
 
 ```
 "APP_NAME": ""
