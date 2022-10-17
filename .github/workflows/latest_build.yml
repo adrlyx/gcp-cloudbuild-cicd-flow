@@ -1,0 +1,51 @@
+name: latest build
+
+on:
+  push:
+    branches:
+      - latest
+
+  workflow_dispatch:
+
+jobs:
+  job1:
+  
+    # Set permissions to be able to write id-token for google-github-actions/auth@v0
+    permissions:
+      id-token: write
+      contents: read
+  
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check-out
+      - uses: actions/checkout@v3
+
+      - name: 'Get branch-json'
+        id: set-branch-json
+        run: |
+          set -o xtrace
+          echo "PACKAGE_JSON=$(jq -c . < ./conf/github_actions_config_latest.json)" >> $GITHUB_ENV
+      
+      - name: Set environment for cloudbuild 
+        run: |-
+          sed -i 's/ENVIRONMENT/${{ fromJson(env.PACKAGE_JSON).ENVIRONMENT }}/g' ./cloudbuild.yaml
+          sed -i "s/GITHUB_REF/$GITHUB_RUN_ID/g" ./cloudbuild.yaml
+          sed -i "s/PROJECT_ID/${{ secrets.PROJECT_ID }}/g" ./cloudbuild.yaml
+          sed -i "s/REGISTRY_NAME/${{ fromJson(env.PACKAGE_JSON).REGISTRY_NAME }}/g" ./cloudbuild.yaml
+          sed -i "s/APP_NAME/${{ fromJson(env.PACKAGE_JSON).APP_NAME }}/g" ./cloudbuild.yaml
+
+      # Authenticate to Google Cloud with the WIP provider and a service account to impersonate
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          access_token_lifetime: 600s
+          workload_identity_provider: ${{ secrets.PROVIDER_ID }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      # Now you can run gcloud commands authenticated as the impersonated service account.
+      - id: 'gcloud'
+        name: 'gcloud'
+        run: |-
+          gcloud builds submit --config=cloudbuild.yaml --region=europe-west1

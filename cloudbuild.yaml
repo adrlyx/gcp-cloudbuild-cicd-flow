@@ -1,0 +1,21 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 
+          'europe-west1-docker.pkg.dev/PROJECT_ID/REGISTRY_NAME/APP_NAME:ENVIRONMENT',
+          '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 
+          'europe-west1-docker.pkg.dev/PROJECT_ID/REGISTRY_NAME/APP_NAME:ENVIRONMENT']
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'APP_NAME-ENVIRONMENT'
+    - '--image'
+    - 'europe-west1-docker.pkg.dev/PROJECT_ID/REGISTRY_NAME/APP_NAME:ENVIRONMENT'
+    - '--region'
+    - 'europe-west1'
+logsBucket: 'gs://PROJECT_ID_cloudbuild_logs'
+options:
+  logging: GCS_ONLY

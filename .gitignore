@@ -1,0 +1,7 @@
+docs/
+tf/.terraform/providers/
+tf/.terraform
+tf/.terraform*
+tf/terraform.tfstate*
+.env
+.DS_Store*
