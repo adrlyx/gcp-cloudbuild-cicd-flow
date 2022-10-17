@@ -17,11 +17,6 @@ Gcloud will build what is instructed by the 'Dockerfile' located at top level fo
 In this example it will build a static nginx website based on the code in './app'.
 <br />
 
-## Motivation?
-The goal was...
-<br />
-<br />
-
 ## Prerequisites
 
 1. Change all TODOs in the following files:
