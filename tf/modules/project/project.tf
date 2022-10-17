@@ -29,7 +29,7 @@ resource "google_project" "project" {
   project_id = "${var.project_name}-${random_string.project_suffix.result}"
   billing_account     = var.billing_account
   auto_create_network = false
-  folder_id = "folders/210214105535"
+  folder_id = "${var.folder_id}"
 }
 
 # Enable APIs
