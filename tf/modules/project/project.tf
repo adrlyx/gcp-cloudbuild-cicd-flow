@@ -58,6 +58,11 @@ resource "google_service_account" "cloud_run" {
   project      = google_project.project.project_id
 }
 
+output "cloud_run_sa_id" {
+  value       = google_service_account.cloud_run.id
+  description = "The ID of the project"
+}
+
 output "cloud_run_sa" {
   value       = google_service_account.cloud_run.email
   description = "The ID of the project"

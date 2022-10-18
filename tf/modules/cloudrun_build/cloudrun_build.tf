@@ -66,11 +66,8 @@ resource "google_project_iam_binding" "cloudbuild_admin" {
   ]
 }
 
-# #Needs to be Storage Admin to be able to reach temporary buckets
-# resource "google_project_iam_binding" "account_user" {
-#   project = var.project_id
-#   role    = "roles/iam.serviceAccountUser"
-#   members = [
-#     "serviceAccount:${var.project_number}@cloudbuild.gserviceaccount.com"
-#   ]
-# }
+resource "google_service_account_iam_member" "act_as" {
+  service_account_id = var.cloud_run_sa_id
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${var.project_number}@cloudbuild.gserviceaccount.com"
+}

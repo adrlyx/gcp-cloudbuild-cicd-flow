@@ -44,6 +44,7 @@ module "cloudrun_build" {
   location                  = local.location
   registry_repository_name  = local.registry_name
   cloud_run_sa              = module.project.cloud_run_sa
+  cloud_run_sa_id           = module.project.cloud_run_sa_id
   service_account           = module.wip-github.service_account
   source                    = "./modules/cloudrun_build"
     depends_on = [

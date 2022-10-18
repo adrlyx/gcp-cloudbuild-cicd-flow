@@ -6,6 +6,10 @@ variable "cloud_run_sa" {
   type = string
 }
 
+variable "cloud_run_sa_id" {
+  type = string
+}
+
 variable "project_number" {
   type = string
 }
