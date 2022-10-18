@@ -17,6 +17,7 @@ locals {
     app_name            = ""        # TODO: App name for Cloud Run services
     registry_name       = ""        # TODO: Name your artifact registry where you images will be pushed
     folder_id           = ""        # TODO: Folder ID from GCP. Format: 'folders/<folder-id>'
+    container_port      = ""        # TODO: Container port that your app uses
 }
 
 module "project" {
@@ -57,6 +58,7 @@ module "cloudrun_prod" {
   environment               = "prod"
   location                  = local.location
   cloud_run_sa              = module.project.cloud_run_sa
+  container_port            = local.container_port
   source                    = "./modules/cloudrun"
     depends_on = [
       module.wip-github,
@@ -70,6 +72,7 @@ module "cloudrun_latest" {
   app_name                  = local.app_name
   environment               = "latest"
   location                  = local.location
+  container_port            = local.container_port
   cloud_run_sa              = module.project.cloud_run_sa
   source                    = "./modules/cloudrun"
     depends_on = [

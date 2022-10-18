@@ -13,7 +13,7 @@ resource "google_cloud_run_service" "application" {
           value = var.environment
         }
         ports {
-          container_port = "XXXX"       # TODO: Set to your applications port number
+          container_port = "${var.container_port}"
         }
         # The image field is required when creating a Cloud Run service.
         # However, we don't want to use Terraform to control which image

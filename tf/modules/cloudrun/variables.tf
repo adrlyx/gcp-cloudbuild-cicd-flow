@@ -17,3 +17,7 @@ variable "project_id" {
 variable "cloud_run_sa" {
   type = string
 }
+
+variable "container_port" {
+  type = string
+}

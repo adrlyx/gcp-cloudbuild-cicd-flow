@@ -23,7 +23,6 @@ In this example it will build a static nginx website based on the code in './app
 
 ```
     tf/main.tf
-    tf/modules/cloudrun/cloudrun.tf
 ```
 
 2. You need to be authenticated with your GCP account to be able to run Terraform.
