@@ -1,5 +1,10 @@
 # gcp-cloudbuild-cicd-flow
 
+> **Note**<br><br>
+> * You need to have a billing account in GCP to use this repo.
+> * You need to have gcloud installed
+> * You need to be authenticated with your Google account and have sufficient privileges in GCP to run Terraform
+
 ## What is this?
 This is a repo that contains the nessasary code to build and deploy an example website to Google Cloud Run in a multi-env fashion. With the help of the terraform code in './tf' you can set up all infrastructure that is needed in Google Cloud to build and deploy images for the pre-defined environments 'prod' and 'latest'. Terraform will also setup Workload Identity Federation to your repo for Github Actions authentication to be able to run 'gcloud' commands. In '.github/workflows' there are two CI/CD processes prepared for pushes towards branches 'prod' and 'latest'. When push on one of those branches, Github Actions will trigger and do the following:
 
