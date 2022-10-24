@@ -1,28 +1,57 @@
 /*
-
 IAM Walkthrough
 
-Check - Assign the secretAccessor role to that service account
-Check - Give the cloud run SA run.admin role
-Check - Default google SA @cloudbuild is used by github integration and needs permissions to handle cloudrun instances on deploy
-Check - Role for sa to list buckets. Required for cloudbuild to read logs
-Check - Give github identity SA & cloudbuild SA the role bucket_viewer
-Check - Give github identity SA & cloudbuild SA storage admin role with access to specific buckets
-Check - Make the default cloudbuild SA able to act as serviceAccountUser cloudbuild SA
-Check - serviceaccount_user roles/iam.serviceAccountUser
-Check - cloudbuild SA account the artifactregistry.admin
-Check - Give the github identity SA the cloudbuild.builds.builder role
+Relevant Accounts:
+* <project number>@@cloudbuild.gserviceaccount.com
+    This account is a default account for each Google Cloud Project.
+    It is used by GCP with Cloud Build to pull/push/deploy container images.
+* Cloud Run Service Account
+    This SA is created in the terraform module "cloudrun" and is
+    only created to handle Cloud Run Services. I do this to
+    separate SAs different permissions.
+* Github Identity Service Account
+    This SA is created in the terraform module "wip-github" and is
+    created to be the SA that github actions will use.
+    This SA is allowed to impersonate other service accounts to be
+    able to run Cloud Build and deploy Cloud Run Services.
+
+
+google_project_iam_binding.cloudrun_admin:
+    Give the Cloud Run SA run.admin role to be able to update
+    Cloud Run Services.
+google_project_iam_binding.cloudrun_viewer:
+    The default Google SA '@cloudbuild' is used by github integration
+    and needs permissions to handle Cloud Run instanses on deploy.
+google_project_iam_custom_role.bucket_viewer:
+    Creates a custom role that has the permission to list buckets
+    (storage.buckets.list). There is no default role in GCP that
+    only allows a SA to list buckets.
+google_project_iam_binding.viewer:
+    Gives the github identity SA and Cloudbuild SA the role bucket_viewer.
+google_project_iam_binding.storage_admin:
+    Gives the github identity SA and Cloudbuild SA storage admin role
+    but with a condition to two specific buckets that are created by
+    the module "cloudrun_build". This combined with the permission
+    above gives these accounts only the nessasary permissions to
+    the buckets.
+google_service_account_iam_member.act_as_compute_sa:
+    Gives the default Cloudbuild SA permissions to impersonate
+    the Cloud Run SA that are created by the module "cloudrun".
+google_project_iam_binding.serviceaccount_user:
+    Allows the github identity SA to impersonate other service accounts.
+google_project_iam_binding.artifactory_admin:
+    Give the default Cloudbuild SA the role artifactregistry.admin.
+    This is needed to pull/push docker images to Artifact Registry.
+google_project_iam_binding.cloudbuild_admin:
+    Give the github identity SA the role cloudbuild.builds.builder
+    to be able to submit cloudbuilds.
+google_project_iam_member.secrets_manager:
+    Assign the secretAccessor role to the Cloud Run SA.
 
 */
 
-# Assign the secretAccessor role to that service account
-resource "google_project_iam_member" "app" {
-  project = var.google_project.project_id
-  role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${var.cloud_run_sa.email}"
-}
-
-# Give the cloud run SA run.admin role
+# Give the Cloud Run SA run.admin role to be able to update
+# Cloud Run Services.
 resource "google_project_iam_binding" "cloudrun_admin" {
   project = var.google_project.project_id
   role    = "roles/run.admin"
@@ -31,8 +60,8 @@ resource "google_project_iam_binding" "cloudrun_admin" {
   ]
 }
 
-# Default google SA @cloudbuild is used by github integration and 
-# needs permissions to handle cloudrun instanses on deploy
+# The default Google SA '@cloudbuild' is used by github integration
+# and needs permissions to handle Cloud Run instanses on deploy.
 resource "google_project_iam_binding" "cloudrun_viewer" {
   project = var.google_project.project_id
   role    = "roles/run.developer"
@@ -41,7 +70,9 @@ resource "google_project_iam_binding" "cloudrun_viewer" {
   ]
 }
 
-# Role for SA to list buckets. Required for cloudbuild to read logs
+# Creates a custom role that has the permission to list buckets
+# (storage.buckets.list). There is no default role in GCP that
+# only allows a SA to list buckets.
 resource "google_project_iam_custom_role" "bucket_viewer" {
   project = var.google_project.project_id
   role_id     = "bucket_viewer"
@@ -50,7 +81,7 @@ resource "google_project_iam_custom_role" "bucket_viewer" {
   permissions = ["storage.buckets.list"]
 }
 
-# Give github identity SA & cloudbuild SA the role bucket_viewer
+# Gives the github identity SA and Cloudbuild SA the role bucket_viewer.
 resource "google_project_iam_binding" "viewer" {
   project = var.google_project.project_id
   role    = "projects/${var.google_project.project_id}/roles/bucket_viewer"
@@ -60,8 +91,11 @@ resource "google_project_iam_binding" "viewer" {
   ]
 }
 
-# Give github identity SA & cloudbuild SA storage admin role with
-# condition to a specific bucket
+# Gives the github identity SA and Cloudbuild SA storage admin role
+# but with a condition to two specific buckets that are created by
+# the module "cloudrun_build". This combined with the permission
+# above gives these accounts only the nessasary permissions to
+# the buckets.
 resource "google_project_iam_binding" "storage_admin" {
   project = var.google_project.project_id
   role    = "roles/storage.admin"
@@ -76,14 +110,15 @@ resource "google_project_iam_binding" "storage_admin" {
   }
 }
 
-# Make the default cloudbuild SA able to act as serviceAccountUser compute SA
+# Gives the default Cloudbuild SA permissions to impersonate
+# the Cloud Run SA that are created by the module "cloudrun".
 resource "google_service_account_iam_member" "act_as_compute_sa" {
   service_account_id = "projects/${var.google_project.project_id}/serviceAccounts/${var.cloud_run_sa.email}"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${var.google_project.number}@cloudbuild.gserviceaccount.com"
 }
 
-# Allow github identity to iam.serviceAccountUser
+# Allows the github identity SA to impersonate other service accounts.
 resource "google_project_iam_binding" "serviceaccount_user" {
   project = var.google_project.project_id
   role    = "roles/iam.serviceAccountUser"
@@ -93,7 +128,8 @@ resource "google_project_iam_binding" "serviceaccount_user" {
   ]
 }
 
-# cloudbuild SA account the artifactregistry.admin
+# Give the default Cloudbuild SA the role artifactregistry.admin.
+# This is needed to pull/push docker images to Artifact Registry.
 resource "google_project_iam_binding" "artifactory_admin" {
   project = var.google_project.project_id
   role    = "roles/artifactregistry.admin"
@@ -102,11 +138,19 @@ resource "google_project_iam_binding" "artifactory_admin" {
   ]
 }
 
-# Stannar - # Give the github identity SA the cloudbuild.builds.builder role
+# Give the github identity SA the role cloudbuild.builds.builder
+# to be able to submit cloudbuilds.
 resource "google_project_iam_binding" "cloudbuild_admin" {
   project = var.google_project.project_id
   role    = "roles/cloudbuild.builds.builder"
   members = [
     "serviceAccount:${var.github_sa.email}"
   ]
+}
+
+# Assign the secretAccessor role to the Cloud Run SA.
+resource "google_project_iam_member" "secrets_manager" {
+  project = var.google_project.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${var.cloud_run_sa.email}"
 }
