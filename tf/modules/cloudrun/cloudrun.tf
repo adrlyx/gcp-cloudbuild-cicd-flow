@@ -3,7 +3,7 @@ resource "google_cloud_run_service" "application" {
   provider = google-beta
   name     = "${var.app_name}-${var.environment}"
   location = var.location
-  project  = var.project_id
+  project  = var.google_project.project_id
 
   template {
     spec {
@@ -21,7 +21,7 @@ resource "google_cloud_run_service" "application" {
         # is ignored when updateing (see the lifecycle block below).
         image = "gcr.io/google-samples/hello-app:1.0"
       }
-      service_account_name = var.cloud_run_sa
+      service_account_name = var.cloud_run_sa.email
     }
   }
   metadata {

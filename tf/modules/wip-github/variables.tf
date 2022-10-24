@@ -1,5 +1,5 @@
-variable "project_id" {
-  type = string
+variable "google_project" {
+  type = any
 }
 
 variable "attribute_mapping" {

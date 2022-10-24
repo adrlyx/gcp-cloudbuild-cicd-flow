@@ -29,7 +29,7 @@ module "project" {
 }
 
 module "wip-github" {
-  project_id          = module.project.project_id
+  google_project          = module.project.google_project
   repo = local.repo
   source                = "./modules/wip-github"
     depends_on = [
@@ -38,14 +38,9 @@ module "wip-github" {
 }
 
 module "cloudrun_build" {
-  project_id                = module.project.project_id
-  project_number            = module.project.project_number
-  app_name                  = local.app_name
+  google_project            = module.project.google_project
   location                  = local.location
   registry_repository_name  = local.registry_name
-  cloud_run_sa              = module.project.cloud_run_sa
-  cloud_run_sa_id           = module.project.cloud_run_sa_id
-  service_account           = module.wip-github.service_account
   source                    = "./modules/cloudrun_build"
     depends_on = [
     module.project,
@@ -54,7 +49,7 @@ module "cloudrun_build" {
 }
 
 module "cloudrun_prod" {
-  project_id                = module.project.project_id
+  google_project            = module.project.google_project
   app_name                  = local.app_name
   environment               = "prod"
   location                  = local.location
@@ -69,7 +64,7 @@ module "cloudrun_prod" {
 }
 
 module "cloudrun_latest" {
-  project_id                = module.project.project_id
+  google_project            = module.project.google_project
   app_name                  = local.app_name
   environment               = "latest"
   location                  = local.location
@@ -83,19 +78,33 @@ module "cloudrun_latest" {
   ]
 }
 
+module "iam" {
+  google_project            = module.project.google_project
+  cloud_run_sa              = module.project.cloud_run_sa
+  github_sa                 = module.wip-github.github_sa
+  source                    = "./modules/iam"
+    depends_on = [
+      module.wip-github,
+      module.project,
+      module.cloudrun_build,
+      module.cloudrun_prod,
+      module.cloudrun_latest
+  ]
+}
+
 # outputs
 output "project_number" {
-  value = module.project.project_number
+  value = module.project.google_project.number
 }
 
 output "project_id" {
-  value = module.project.project_id
+  value = module.project.google_project.project_id
 }
 
 output "provider_id" {
   value = module.wip-github.provider_id
 }
 
-output "service_account" {
-  value = module.wip-github.service_account
+output "github_service_account" {
+  value = module.wip-github.github_sa.email
 }
