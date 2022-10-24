@@ -10,12 +10,12 @@ variable "location" {
   type = string
 }
 
-variable "project_id" {
-  type = string
+variable "google_project" {
+  type = any
 }
 
 variable "cloud_run_sa" {
-  type = string
+  type = any
 }
 
 variable "container_port" {
